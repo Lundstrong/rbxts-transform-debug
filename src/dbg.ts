@@ -1,13 +1,14 @@
 import path from "path";
 import ts, { factory } from "typescript";
+import { DebugTransformConfiguration } from ".";
 import { createExpressionDebugPrefixLiteral, formatTransformerDiagnostic, getDebugInfo } from "./shared";
 
 function createPrintCallExpression(args: ts.Expression[]) {
 	return factory.createCallExpression(factory.createIdentifier("print"), undefined, args);
 }
 
-export function transformToInlineDebugPrint(node: ts.Expression): ts.Expression {
-	return createPrintCallExpression([createExpressionDebugPrefixLiteral(node), node]);
+export function transformToInlineDebugPrint(node: ts.Expression, config: DebugTransformConfiguration): ts.Expression {
+	return createPrintCallExpression([createExpressionDebugPrefixLiteral(node, config), node]);
 }
 
 /**
@@ -15,11 +16,11 @@ export function transformToInlineDebugPrint(node: ts.Expression): ts.Expression 
  * @param id The identifier
  * @param argument The expression
  */
-export function createIIFEBlock(id: ts.Identifier, argument: ts.Expression): ts.Block {
+export function createIIFEBlock(id: ts.Identifier, argument: ts.Expression, config: DebugTransformConfiguration): ts.Block {
 	return factory.createBlock(
 		[
 			factory.createExpressionStatement(
-				createPrintCallExpression([createExpressionDebugPrefixLiteral(argument), id]),
+				createPrintCallExpression([createExpressionDebugPrefixLiteral(argument, config), id]),
 			),
 			factory.createReturnStatement(id),
 		],
@@ -54,6 +55,7 @@ export function createCustomIIFEBlock(
 	body: ts.ConciseBody,
 	sourceId: ts.Identifier,
 	debugInfoParam: ts.ParameterDeclaration | undefined,
+	config: DebugTransformConfiguration,
 ): ts.Block {
 	if (ts.isBlock(body)) {
 		const newBody = [...body.statements];
@@ -82,14 +84,15 @@ export function createCustomIIFEBlock(
 		return factory.createBlock(newBody);
 	} else {
 		const id = factory.createIdentifier("value");
-		return createIIFEBlock(id, expression);
+		return createIIFEBlock(id, expression, config);
 	}
 }
 
 export function transformToIIFEDebugPrint(
 	expression: ts.Expression,
 	customHandler: ts.Expression,
-	program: ts.Program,
+	program: ts.Program, 
+	config: DebugTransformConfiguration,
 ): ts.Expression {
 	if (customHandler) {
 		if (ts.isArrowFunction(customHandler) || ts.isFunctionExpression(customHandler)) {
@@ -129,7 +132,7 @@ export function transformToIIFEDebugPrint(
 						[factory.createParameterDeclaration(undefined, undefined, undefined, valueId)],
 						undefined,
 						undefined,
-						createCustomIIFEBlock(expression, body, valueId, debugInfo),
+						createCustomIIFEBlock(expression, body, valueId, debugInfo, config),
 					),
 				),
 				undefined,
@@ -190,7 +193,7 @@ export function transformToIIFEDebugPrint(
 					[factory.createParameterDeclaration(undefined, undefined, undefined, id)],
 					undefined,
 					undefined,
-					createIIFEBlock(id, expression),
+					createIIFEBlock(id, expression, config),
 				),
 			),
 			undefined,

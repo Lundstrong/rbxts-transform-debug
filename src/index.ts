@@ -75,21 +75,21 @@ function handleDebugCallExpression(
 	node: ts.CallExpression,
 	functionName: string,
 	program: ts.Program,
-	{ enabled, verbose }: DebugTransformConfiguration,
+	config: DebugTransformConfiguration,
 ) {
-	if (verbose) console.log(formatTransformerDebug("Handling call to macro " + chalk.yellow(functionName), node));
+	if (config.verbose) console.log(formatTransformerDebug("Handling call to macro " + chalk.yellow(functionName), node));
 
 	switch (functionName) {
 		case MacroFunctionName.dbg: {
 			const [expression, customHandler] = node.arguments;
 			if (ts.isExpressionStatement(node.parent) && customHandler === undefined) {
-				return enabled
-					? transformToInlineDebugPrint(expression)
+				return config.enabled
+					? transformToInlineDebugPrint(expression, config)
 					: ts.isCallExpression(expression)
 					? expression
 					: factory.createVoidExpression(factory.createIdentifier("undefined"));
 			}
-			return enabled ? transformToIIFEDebugPrint(expression, customHandler, program) : expression;
+			return config.enabled ? transformToIIFEDebugPrint(expression, customHandler, program, config) : expression;
 		}
 		case MacroFunctionName.commitId: {
 			return transformCommitId(node);
@@ -98,11 +98,11 @@ function handleDebugCallExpression(
 			return transformGit(node);
 		}
 		case MacroFunctionName.print: {
-			return enabled ? transformPrint(node) : factory.createVoidExpression(factory.createIdentifier("undefined"));
+			return config.enabled ? transformPrint(node, config) : factory.createVoidExpression(factory.createIdentifier("undefined"));
 		}
 		case MacroFunctionName.warn: {
-			return enabled
-				? transformWarning(node)
+			return config.enabled
+				? transformWarning(node, config)
 				: factory.createVoidExpression(factory.createIdentifier("undefined"));
 		}
 		case MacroFunctionName.nameof: {
@@ -186,6 +186,7 @@ function visitNode(
 
 export interface DebugTransformConfiguration {
 	enabled: boolean;
+	scope?: string;
 	verbose?: boolean;
 	environmentRequires?: Record<string, string | boolean>;
 }
