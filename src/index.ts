@@ -3,7 +3,7 @@ import path from "path";
 import ts, { factory } from "typescript";
 import fs from "fs";
 import { transformToInlineDebugPrint, transformToIIFEDebugPrint } from "./dbg";
-import { transformPrint, transformWarning } from "./print";
+import { transformError, transformPrint, transformWarning } from "./print";
 import { formatTransformerDebug, formatTransformerDiagnostic, formatTransformerWarning } from "./shared";
 import chalk from "chalk";
 import { transformNameOf } from "./nameof";
@@ -66,6 +66,7 @@ const MacroFunctionName = {
 	dbg: "$dbg",
 	print: "$print",
 	warn: "$warn",
+	error: "$error",
 	commitId: "$commitId",
 	git: "$git",
 	nameof: "$nameof",
@@ -104,6 +105,9 @@ function handleDebugCallExpression(
 			return config.enabled
 				? transformWarning(node, config)
 				: factory.createVoidExpression(factory.createIdentifier("undefined"));
+		}
+		case MacroFunctionName.error: {
+			return config.enabled ? transformError(node, config) : factory.createVoidExpression(factory.createIdentifier("undefined"));
 		}
 		case MacroFunctionName.nameof: {
 			if (ts.isExpressionStatement(node.parent)) {

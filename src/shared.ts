@@ -92,3 +92,10 @@ export function createDebugPrefixLiteral(node: ts.Node, config: DebugTransformCo
 	const relativePath = path.relative(process.cwd(), node.getSourceFile().fileName).replace(/\\/g, "/");
 	return factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""} [${relativePath}:${linePos.line + 1}]`, true);
 }
+
+export function createErrorPrefixLiteral(node: ts.CallExpression, config: DebugTransformConfiguration): ts.BinaryExpression {
+	const sourceFile = node.getSourceFile();
+	const linePos = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+	const relativePath = path.relative(process.cwd(), node.getSourceFile().fileName).replace(/\\/g, "/");
+	return factory.createBinaryExpression(factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""} [${relativePath}:${linePos.line + 1}] `, true), factory.createToken(ts.SyntaxKind.PlusToken), node.arguments[0]);
+}
