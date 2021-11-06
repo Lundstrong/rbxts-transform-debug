@@ -97,3 +97,9 @@ The purpose of this is to conditionally render the `$dbg` calls as the debug sta
 
 ## `enabled` [Boolean] (Defaults to `true`)
 Whether or not this transformer actually emits the `$dbg` as debug statements at all. If `false`, it will just return the expressions themselves.
+
+## `scope` [String?] (defaults to `undefined`)
+Adds a scope to the start of any logging to the Roblox Console. If undefined, this feature will not be enabled.
+
+## `showSourcePath` [Boolean] (Defaults to `true`)
+Whether or not the transformer should show the file path + line number of where the logging was from.

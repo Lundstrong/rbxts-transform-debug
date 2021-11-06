@@ -11,7 +11,7 @@ export function createExpressionDebugPrefixLiteral(node: ts.Node, config: DebugT
 	const sourceFile = node.getSourceFile();
 	const linePos = sourceFile.getLineAndCharacterOfPosition(node.getStart());
 	const relativePath = path.relative(process.cwd(), node.getSourceFile().fileName).replace(/\\/g, "/");
-	return factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""} [${relativePath}:${linePos.line + 1}] ${node.getText()} =`, true);
+	return factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""}${config.showSourcePath ? ` [${relativePath}:${linePos.line + 1}]` : ""} ${node.getText()} =`, true);
 }
 
 export function formatTransformerDebug(message: string, node?: ts.Node): string {
@@ -90,12 +90,12 @@ export function createDebugPrefixLiteral(node: ts.Node, config: DebugTransformCo
 	const sourceFile = node.getSourceFile();
 	const linePos = sourceFile.getLineAndCharacterOfPosition(node.getStart());
 	const relativePath = path.relative(process.cwd(), node.getSourceFile().fileName).replace(/\\/g, "/");
-	return factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""} [${relativePath}:${linePos.line + 1}]`, true);
+	return factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""}${config.showSourcePath ? ` [${relativePath}:${linePos.line + 1}]` : ""}`, true);
 }
 
 export function createErrorPrefixLiteral(node: ts.CallExpression, config: DebugTransformConfiguration): ts.BinaryExpression {
 	const sourceFile = node.getSourceFile();
 	const linePos = sourceFile.getLineAndCharacterOfPosition(node.getStart());
 	const relativePath = path.relative(process.cwd(), node.getSourceFile().fileName).replace(/\\/g, "/");
-	return factory.createBinaryExpression(factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""} [${relativePath}:${linePos.line + 1}] `, true), factory.createToken(ts.SyntaxKind.PlusToken), node.arguments[0]);
+	return factory.createBinaryExpression(factory.createStringLiteral(`${config.scope ? `[${config.scope}]` : ""}${config.showSourcePath ? ` [${relativePath}:${linePos.line + 1}]` : ""} `, true), factory.createToken(ts.SyntaxKind.PlusToken), node.arguments[0]);
 }

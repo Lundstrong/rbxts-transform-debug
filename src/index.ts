@@ -191,12 +191,14 @@ function visitNode(
 export interface DebugTransformConfiguration {
 	enabled: boolean;
 	scope?: string;
+	showSourcePath: boolean;
 	verbose?: boolean;
 	environmentRequires?: Record<string, string | boolean>;
 }
 
 const DEFAULTS: DebugTransformConfiguration = {
 	enabled: true,
+	showSourcePath: true
 };
 
 export default function transform(program: ts.Program, userConfiguration: DebugTransformConfiguration) {
